@@ -26,26 +26,30 @@ let levels = [
   'schema'
 ];
 
-let imagePromises = {};
-let images = {};
+let images = null;
 
 async function getImages () {
+  const urls = [];
+  const promises = [];
   tools.forEach(tool => {
     operations.forEach(op => {
       levels.forEach(level => {
         let url = `${tool}/${op}/${level}.gif`;
-        imagePromises[url] = d3.image(url)
-          .catch(() => { return Promise.resolve(null); });
+        urls.push(url);
+        promises.push(d3.image(url)
+          .catch(() => { return Promise.resolve(null); }));
       });
     });
   });
-  await Promise.all(Object.keys(imagePromises));
-  for (let [url, imagePromise] in Object.entries(imagePromises)) {
-    images[url] = await imagePromise;
-  }
+  return (await Promise.all(promises)).reduce((agg, img, index) => {
+    agg[urls[index]] = img;
+    return agg;
+  }, {});
 }
 
-function drawTable () {
+async function drawTable () {
+  images = images || await getImages();
+
   let colHeaders = d3.select('thead > tr').selectAll('th')
     .data([null, null].concat(tools));
   colHeaders.exit().remove();
@@ -84,7 +88,7 @@ function drawTable () {
       return row.concat(tools.map(tool => {
         let url = `${tool}/${d.op}/${d.level}.gif`;
         if (images[url]) {
-          return { url, className: 'supported' };
+          return { image: images[url], className: 'supported' };
         } else {
           return { className: 'notSupported' };
         }
@@ -98,17 +102,12 @@ function drawTable () {
     .attr('rowspan', d => d.rowspan || null)
     .attr('class', d => d.className)
     .on('mouseover', d => {
-      if (d.url) {
-        d3.select('#preview').html(images[d.url]);
+      if (d.image) {
+        d3.select('#preview').node().appendChild(d.image);
       } else {
-        d3.select('#preview').html('');
+        d3.select('#preview').html('<h1>(operation not supported)</h1>');
       }
     });
 }
 
-async function setup () {
-  await getImages();
-  drawTable();
-}
-
-window.onload = setup;
+window.onload = window.onresize = drawTable;
