@@ -1,29 +1,30 @@
 /* globals d3 */
 
 let tools = [
-  'origraph',
   'gephi',
   'cytoscape',
   'tulip',
   'yFiles',
   'graphiti',
   'orion',
-  'ploceus'
+  'ploceus',
+  'origraph'
 ];
 let operations = [
+  'custom_styling',
+  'attribute_editing',
   'connect',
+  'toggle_node_edge_status',
+  'toggle_direction',
   'group_ungroup',
   'pop_in_out',
   'pipe',
   'dissolve_combine',
-  'toggle_node_edge_status',
-  'toggle_direction',
-  'kevin_bacon',
-  'attribute_editing'
+  'kevin_bacon'
 ];
 let levels = [
   'instance',
-  'schema'
+  'bulk'
 ];
 
 let images = null;
@@ -102,6 +103,7 @@ async function drawTable () {
     .attr('rowspan', d => d.rowspan || null)
     .attr('class', d => d.className)
     .on('mouseover', d => {
+      d3.select('#preview').html('');
       if (d.image) {
         d3.select('#preview').node().appendChild(d.image);
       } else {
