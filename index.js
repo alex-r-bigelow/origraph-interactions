@@ -35,14 +35,15 @@ async function getPages () {
   tools.forEach(tool => {
     operations.forEach(op => {
       levels.forEach(level => {
-        let url = `${tool}/${op}/${level}.gif`;
+        let url = `${tool}/${op}/${level}.html`;
         urls.push(url);
-        promises.push(d3.image(url)
+        promises.push(d3.text(url)
           .catch(() => { return Promise.resolve(null); }));
       });
     });
   });
   const result = {};
+  await Promise.all(promises);
   for (let i = 0; i < promises.length; i++) {
     result[urls[i]] = await promises[i];
     d3.select('#progressBar').style('width', 100 * (i / promises.length) + 'px');
@@ -90,7 +91,7 @@ async function drawTable () {
         className: 'levelHeader'
       });
       return row.concat(tools.map(tool => {
-        let url = `${tool}/${d.op}/${d.level}.gif`;
+        let url = `${tool}/${d.op}/${d.level}.html`;
         if (pages[url]) {
           return { page: pages[url], className: 'supported' };
         } else {
@@ -109,9 +110,8 @@ async function drawTable () {
     .on('click', function (d) {
       d3.selectAll('.selected').classed('selected', false);
       d3.select(this).classed('selected', true);
-      d3.select('#preview').html('');
       if (d.page) {
-        d3.select('#preview').node().appendChild(d.page);
+        d3.select('#preview').html(d.page);
       } else {
         d3.select('#preview').html('<h1>(operation not supported)</h1>');
       }

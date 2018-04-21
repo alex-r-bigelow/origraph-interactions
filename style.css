@@ -80,7 +80,7 @@ td.selected {
   top: 0px;
   right: 0px;
   bottom: 0px;
-  background-color: rgba(100,100,100,0.25);
+  background-color: rgba(0,0,0,0.5);
 }
 #progressFrame,
 #progressBar {
@@ -91,10 +91,16 @@ td.selected {
 }
 #progressFrame {
   width: 100px;
-  border: 1px solid black;
+  border: 1px solid #ccc;
 }
 #progressBar {
   width: 0px;
-  background-color: #66a61e;
+  background-color: #ccc;
   border: 1px solid transparent;
+}
+#spinner {
+  position: absolute;
+  top: calc(50% + 1em);
+  left: calc(50% - 4em);
+  width: 8em;
 }
