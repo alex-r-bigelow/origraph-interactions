@@ -27,9 +27,9 @@ let levels = [
   'bulk'
 ];
 
-let images = null;
+let pages = null;
 
-async function getImages () {
+async function getPages () {
   const urls = [];
   const promises = [];
   tools.forEach(tool => {
@@ -42,14 +42,17 @@ async function getImages () {
       });
     });
   });
-  return (await Promise.all(promises)).reduce((agg, img, index) => {
-    agg[urls[index]] = img;
-    return agg;
-  }, {});
+  const result = {};
+  for (let i = 0; i < promises.length; i++) {
+    result[urls[i]] = await promises[i];
+    d3.select('#progressBar').style('width', 100 * (i / promises.length) + 'px');
+  }
+  d3.select('#loader').remove();
+  return result;
 }
 
 async function drawTable () {
-  images = images || await getImages();
+  pages = pages || await getPages();
 
   let colHeaders = d3.select('thead > tr').selectAll('th')
     .data([null, null].concat(tools));
@@ -88,8 +91,8 @@ async function drawTable () {
       });
       return row.concat(tools.map(tool => {
         let url = `${tool}/${d.op}/${d.level}.gif`;
-        if (images[url]) {
-          return { image: images[url], className: 'supported' };
+        if (pages[url]) {
+          return { page: pages[url], className: 'supported' };
         } else {
           return { className: 'notSupported' };
         }
@@ -102,10 +105,13 @@ async function drawTable () {
   cells.text(d => d.text)
     .attr('rowspan', d => d.rowspan || null)
     .attr('class', d => d.className)
-    .on('mouseover', d => {
+    .classed('selected', false)
+    .on('click', function (d) {
+      d3.selectAll('.selected').classed('selected', false);
+      d3.select(this).classed('selected', true);
       d3.select('#preview').html('');
-      if (d.image) {
-        d3.select('#preview').node().appendChild(d.image);
+      if (d.page) {
+        d3.select('#preview').node().appendChild(d.page);
       } else {
         d3.select('#preview').html('<h1>(operation not supported)</h1>');
       }
